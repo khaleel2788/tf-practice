@@ -24,6 +24,10 @@ resource "aws_subnet" "subnets" {
     }
     availability_zone = format("${var.region}%s", count.index%2==0?"a":"b")
     vpc_id            = aws_vpc.ntier.id
+    
+    depends_on        = [
+    aws_vpc.ntier
+    ]
 }
 
 resource "aws_internet_gateway" "ntier_igw" {
@@ -31,6 +35,11 @@ resource "aws_internet_gateway" "ntier_igw" {
     tags        = {
         Name    = "ntier-igw"
     }
+    depends_on        = [
+    aws_vpc.ntier,
+    aws_subnet.subnets
+// if we want to create aftter subnets (optional) igw depends on vpc not on subnets.    
+    ]
 }
 
 resource "aws_s3_bucket" "my_bucket" {
@@ -66,8 +75,11 @@ egress {
   }
 tags = {
   Name                  = "websecurity group"
-}   
-
+  depends_on            = [
+    aws_vpc.ntier
+  ]
+  }   
+}
 resource "aws_security_group" "appsg" {
 // ingress is for incoming ports
 // egress is for outgoing ports 
@@ -97,7 +109,10 @@ egress {
   }
 tags = {
   Name                  = "app security group"
-}   
+}  
+    depends_on            = [
+    aws_vpc.ntier
+  ]
 }
 
 resource "aws_security_group" "dbsg" {
@@ -127,9 +142,13 @@ egress {
     cidr_blocks         = [local.any_where]
     ipv6_cidr_blocks    = [local.any_where_ip6]
   }
-tags = {
-  Name                  = "db security group"
-}   
+    tags = {
+        Name                  = "db security group"
+  } 
+    depends_on            = [
+    aws_vpc.ntier
+  ]
+   
 }
 
 
@@ -141,7 +160,10 @@ resource "aws_route_table" "publicrt" {
   }
   tags                  = {
     Name                = "public rt"
-  } 
+  }
+  depends_on            = [
+    aws_internet_gateway.ntier_igw
+  ] 
 }
 
 resource "aws_route_table" "privatert" {
@@ -150,6 +172,9 @@ resource "aws_route_table" "privatert" {
   tags                  = {
     Name                = "private rt"
   } 
+  depends_on            = [
+    aws_internet_gateway.ntier_igw
+  ] 
 }
 
 // Route table can be associated in 2 given ways:
@@ -163,4 +188,8 @@ resource "aws_route_table_association" "association" {
     count               = length(aws_subnet.subnets)
     subnet_id           = aws_subnet.subnets[count.index].id
     route_table_id      = contains(var.public_subnets, lookup(aws_subnet.subnets[count.index].tags_all, "Name", ""))?aws_route_table.publicrt.id : aws_route_table.privatert.id
+    depends_on = [ 
+        aws_route_table.publicrt,
+        aws_route_table.privatert
+     ]
 }
