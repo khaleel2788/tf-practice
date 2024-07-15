@@ -22,3 +22,8 @@ variable "public_subnet" {
   type      = list(string)
   default   = [ "web1", "web2" ] 
 }
+
+variable "db_subnets" {
+    type    = list(string)
+    default = [ "db1", "db2" ]  
+}
