@@ -5,6 +5,11 @@ resource "aws_vpc" "ntier" {
     }
 }
 
+// variable "subnet_azs" {
+//    type    = list(string)
+//    default = [ "ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1a", "ap-//southeast-1b", "ap-southeast-1a", "ap-southeast-1b" ]
+
+//}
 
 resource "aws_subnet" "web1" {
     cidr_block  = var.subnet_cidrs[0]
@@ -68,6 +73,5 @@ resource "aws_internet_gateway" "ntier_igw" {
 }
 
 resource "aws_s3_bucket" "my_bucket" {
-    bucket      = var.bucket_name
-    
+  bucket      = var.bucket_name  
 }
