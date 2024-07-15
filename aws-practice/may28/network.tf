@@ -92,10 +92,29 @@ egress {
     from_port           = local.all_ports
     to_port             = local.all_ports
     protocol            = local.any_protocol
-    cidr_blocks         = [var.network_cidr]
+    cidr_blocks         = [local.any_where]
     ipv6_cidr_blocks    = [local.any_where_ip6]
   }
 tags = {
   Name                  = "app security group"
 }   
+}
+
+resource "aws_route_table" "publicrt" {
+  vpc_id                = aws_vpc.ntier.id 
+  route {
+    cidr_block          = local.any_where
+     gateway_id = aws_internet_gateway.ntier_igw.id
+  }
+  tags                  = {
+    Name                = "public rt"
+  } 
+}
+
+resource "aws_route_table" "privatert" {
+  vpc_id                = aws_vpc.ntier.id 
+  
+  tags                  = {
+    Name                = "private rt"
+  } 
 }
