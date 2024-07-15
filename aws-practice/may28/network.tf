@@ -118,3 +118,16 @@ resource "aws_route_table" "privatert" {
     Name                = "private rt"
   } 
 }
+
+// Route table can be associated in 2 given ways:
+// resource "aws_route_table_association" "association" {
+//    count               = length(aws_subnet.subnets)
+//    subnet_id           = aws_subnet.subnets[count.index].id
+//    route_table_id  = count.index<2 ? aws_route_table.public.id : aws_route_table.privatert.id
+// }
+
+resource "aws_route_table_association" "association" {
+    count               = length(aws_subnet.subnets)
+    subnet_id           = aws_subnet.subnets[count.index].id
+    route_table_id  = contains(var.public_subnets, lookup(aws_subnet.subnets[cunt.index].tags_all, "Name", ""))?aws_route_table.publicrt.id : aws_route_table.privatert.id
+}

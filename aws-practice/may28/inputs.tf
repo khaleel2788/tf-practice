@@ -17,3 +17,8 @@ variable "bucket_name" {
     type    = string
     default = "kps3khaleeltf3"
 }
+
+variable "public_subnet" {
+  type      = list(string)
+  default   = [ "web1", "web2" ] 
+}
