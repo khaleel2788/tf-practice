@@ -80,11 +80,48 @@ resource "azurerm_linux_virtual_machine" "webserver" {
         inline = [ 
             "#!/bin/bash",
             "sudo apt update",
-            "sudo apt install apache2 -y"
+            "sudo apt install apache2 -y",
+            "sudo apt install tree openjdk-11-jdk -y"
          ]
 
          // script = "/tmp/installapache2.sh"
       
     }
 
+}
+
+resource "null_resource" "forprovisioning" {
+    triggers    = {
+      "execute"       = var.increment_execute
+    }
+    connection {
+      type      = "ssh"
+      user      = var.username
+      password  = var.password
+      host      = azurerm_linux_virtual_machine.webserver.public_ip_address
+      // actually self.public_ip_address_id I assuming let's see
+    }
+
+// If you have many things to install then use the following
+    # provisioner "file" {
+    #     source = "./scripts/installapache2.sh"
+    #     destination = "/temp/installationapache2.sh"
+      
+    # }
+
+    provisioner "remote-exec" {
+        inline = [ 
+            "#!/bin/bash",
+            "sudo apt update",
+            "sudo apt install software-properties-common-y",
+            "sudo add-apt-repository --yes --update ppa:ansible/ansible",
+            "sudo apt install ansible -y",
+            "ansible --version",
+            "ansbile-playbook --version"
+         ]
+
+         // script = "/tmp/installapache2.sh"
+      
+    }
+  
 }
